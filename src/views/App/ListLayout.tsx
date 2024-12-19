@@ -23,9 +23,9 @@ export default (props) => {
         </TableHead>
         <TableBody>
           {tasks.map((task) => (
-            <TableRow key={task}>
+            <TableRow key={task.name}>
               <TableCell component="th" scope="row">
-                {task}
+                {task.name}
               </TableCell>
             </TableRow>
           ))}

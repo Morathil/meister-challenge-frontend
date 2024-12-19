@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
@@ -16,18 +16,30 @@ import Typography from '@mui/material/Typography'
 import TaskGridLayout from 'views/App/GridLayout'
 import TaskListLayout from 'views/App/ListLayout'
 
-const baseTasks = ['t1', 't2', 't3', 't4', 't5']
-const projects = ['Project1', 'Project2', 'Project3']
-const tasksByProject: { [key: string]: string[]} = projects.reduce((r: any, p) => {
-  r[p] = baseTasks.map((t) => `${p}-${t}`)
-  return r
-}, {})
+import { FETCH_PROJECTS } from 'src/graphql/queries'
+
+import { ApolloClient, InMemoryCache } from '@apollo/client';
+const client = new ApolloClient({
+  uri: 'http://localhost:3000/graphql',
+  cache: new InMemoryCache(),
+});
 
 export default function App () {
   const [useListLayout, setUseListLayout] = useState(true);
-  const [currentProject, setCurrentProject] = useState(projects[0]);
+  const [projects, setProjects] = useState<Project[] | undefined>(undefined);
+  const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
 
-  const currentTasks = tasksByProject[currentProject]
+  useEffect(() => {
+    client.query(FETCH_PROJECTS)
+      .then((result) => {
+        setProjects(result.data.projects)
+        setCurrentProject(result.data.projects[0])
+      });
+  }, [])
+
+  if (!currentProject || !projects) {
+    return <h1>Loading</h1>
+  }
 
   const drawerWidth = 180
 
@@ -57,10 +69,10 @@ export default function App () {
         <Toolbar />
         <Divider />          
         <List>
-          {projects.map((text) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton onClick={() => setCurrentProject(text)}>
-                <ListItemText primary={text} />
+          {projects.map((project) => (
+            <ListItem key={project.name} disablePadding>
+              <ListItemButton onClick={() => setCurrentProject(project)}>
+                <ListItemText primary={project.name} />
               </ListItemButton>
             </ListItem>
           ))}
@@ -68,7 +80,7 @@ export default function App () {
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        {useListLayout ? <TaskListLayout tasks={currentTasks} /> : <TaskGridLayout tasks={currentTasks} />}
+        {useListLayout ? <TaskListLayout tasks={currentProject.tasks} /> : <TaskGridLayout tasks={currentProject.tasks} />}
       </Box>
     </Box>
   )

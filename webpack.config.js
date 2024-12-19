@@ -30,7 +30,7 @@ module.exports = {
     extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json'],
     alias: {
       src: path.resolve(__dirname, 'src/'),
-      views: path.resolve(__dirname, 'src/views/'),
+      views: path.resolve(__dirname, 'src/views/')
     }
   },
   devtool: 'source-map',
