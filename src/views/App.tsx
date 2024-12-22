@@ -1,86 +1,67 @@
 import React, { useState, useEffect } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
-import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
-import Drawer from '@mui/material/Drawer'
-import Divider from '@mui/material/Divider'
 import Box from '@mui/material/Box'
-import Stack from '@mui/material/Stack'
-import Switch from '@mui/material/Switch'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemText from '@mui/material/ListItemText'
-import Typography from '@mui/material/Typography'
-
 import TaskGridLayout from 'views/App/GridLayout'
 import TaskListLayout from 'views/App/ListLayout'
-
-import { FETCH_PROJECTS } from 'src/graphql/queries'
-
-import { ApolloClient, InMemoryCache } from '@apollo/client';
-const client = new ApolloClient({
-  uri: 'http://localhost:3000/graphql',
-  cache: new InMemoryCache(),
-});
+import TopBar from 'views/App/TopBar'
+import ProjectOverview from 'views/App/ProjectOverview'
+import { useSubscription } from '@apollo/client'
+import * as apiServices from 'services/api'
+import { SUBSCRIBE_TO_TASKS_CREATED } from 'graphql/subscriptions'
 
 export default function App () {
   const [useListLayout, setUseListLayout] = useState(true);
   const [projects, setProjects] = useState<Project[] | undefined>(undefined);
-  const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
+  const [tasksByProjectId, setTasksByProjectId] = useState<{ [key: string]: Task[] } | undefined>(undefined);
+  const [currentProjectId, setCurrentProjectId] = useState<number | undefined>(undefined);
 
+  useSubscription<{ taskCreated: Task }>(SUBSCRIBE_TO_TASKS_CREATED, {
+    onData: ({ data }) => {
+      if (data?.data) {
+        const task = data.data.taskCreated
+        const taskProjectId = task.project.id
+        const tasks = (tasksByProjectId && tasksByProjectId[taskProjectId]) ? [...tasksByProjectId[taskProjectId]] : []
+        tasks.push(task)
+        setTasksByProjectId(Object.assign({}, tasksByProjectId, { [taskProjectId]: tasks }))
+      }
+    }
+  });
+  
   useEffect(() => {
-    client.query(FETCH_PROJECTS)
-      .then((result) => {
-        setProjects(result.data.projects)
-        setCurrentProject(result.data.projects[0])
-      });
+    apiServices.fetchProjects()
+      .then((responseProjects) => {
+        setProjects(responseProjects)
+
+        if (responseProjects.length > 0) {
+          setCurrentProjectId(responseProjects[0].id)
+        }
+      })
   }, [])
 
-  if (!currentProject || !projects) {
-    return <h1>Loading</h1>
+  useEffect(() => {
+    if (currentProjectId) {
+      apiServices.fetchTasksById(currentProjectId)
+        .then((responseTasks) => {
+          setTasksByProjectId(Object.assign({}, tasksByProjectId, { [currentProjectId]: responseTasks }))
+        })
+    }
+  }, [currentProjectId])
+
+  if (!projects || !currentProjectId) {
+    return <h1>Loading ...</h1>
   }
 
-  const drawerWidth = 180
+  const selectedProjectTasks = tasksByProjectId ? tasksByProjectId[currentProjectId] : undefined
 
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <AppBar position='fixed' sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Typography variant='h6' style={{ flexGrow: 1 }}>Meister Challenge</Typography>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Typography>Grid</Typography>
-            <Switch defaultChecked color='default' onChange={(event) => {
-              setUseListLayout(event.target.checked)
-            }} />
-            <Typography>List</Typography>
-          </Stack>    
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
-        }}
-        variant='permanent'
-        anchor='left'>
-        <Toolbar />
-        <Divider />          
-        <List>
-          {projects.map((project) => (
-            <ListItem key={project.name} disablePadding>
-              <ListItemButton onClick={() => setCurrentProject(project)}>
-                <ListItemText primary={project.name} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>            
-      </Drawer>
+      <TopBar setUseListLayout={setUseListLayout} />
+      <ProjectOverview projects={projects} currentProjectId={currentProjectId} setCurrentProjectId={setCurrentProjectId} />
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        {useListLayout ? <TaskListLayout tasks={currentProject.tasks} /> : <TaskGridLayout tasks={currentProject.tasks} />}
+        {(useListLayout ? <TaskListLayout tasks={selectedProjectTasks} /> : <TaskGridLayout tasks={selectedProjectTasks} />)}
       </Box>
     </Box>
   )
