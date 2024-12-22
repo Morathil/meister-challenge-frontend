@@ -30,8 +30,7 @@ module.exports = {
     alias: {
       src: path.resolve(__dirname, 'src/'),
       views: path.resolve(__dirname, 'src/views/'),
-      services: path.resolve(__dirname, 'src/services/'),
-      graphql: path.resolve(__dirname, 'src/graphql/')
+      services: path.resolve(__dirname, 'src/services/')
     }
   },
   devtool: 'source-map',

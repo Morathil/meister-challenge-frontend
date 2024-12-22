@@ -8,7 +8,7 @@ import TopBar from 'views/App/TopBar'
 import ProjectOverview from 'views/App/ProjectOverview'
 import { useSubscription } from '@apollo/client'
 import * as apiServices from 'services/api'
-import { SUBSCRIBE_TO_TASKS_CREATED } from 'graphql/subscriptions'
+import { SUBSCRIBE_TO_TASKS_CREATED } from 'src/graphql/subscriptions'
 
 export default function App () {
   const [useListLayout, setUseListLayout] = useState(true);
