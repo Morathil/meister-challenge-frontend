@@ -10,7 +10,7 @@ import Divider from '@mui/material/Divider'
 interface PassedProps {
   projects: Project[]
   setCurrentProjectId: React.Dispatch<React.SetStateAction<number | undefined>>
-  currentProjectId: number
+  currentProjectId?: number
 }
 
 export default function ProjectOverview (props: PassedProps) {

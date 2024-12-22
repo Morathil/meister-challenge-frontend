@@ -48,11 +48,11 @@ export default function App () {
     }
   }, [currentProjectId])
 
-  if (!projects || !currentProjectId) {
+  if (!projects) {
     return <h1>Loading ...</h1>
   }
 
-  const selectedProjectTasks = tasksByProjectId ? tasksByProjectId[currentProjectId] : undefined
+  const selectedProjectTasks = (tasksByProjectId && currentProjectId) ? tasksByProjectId[currentProjectId] : undefined
 
   return (
     <Box sx={{ display: 'flex' }}>
