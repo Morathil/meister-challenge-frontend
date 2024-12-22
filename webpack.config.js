@@ -10,7 +10,6 @@ let entries = {
 }
 
 let plugins = [
-  // new ForkTsCheckerWebpackPlugin(),
   new HtmlWebpackPlugin({
     template: path.resolve(__dirname, 'src/index.html'),
     filename: 'index.html',
@@ -30,7 +29,9 @@ module.exports = {
     extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json'],
     alias: {
       src: path.resolve(__dirname, 'src/'),
-      views: path.resolve(__dirname, 'src/views/')
+      views: path.resolve(__dirname, 'src/views/'),
+      services: path.resolve(__dirname, 'src/services/'),
+      graphql: path.resolve(__dirname, 'src/graphql/')
     }
   },
   devtool: 'source-map',
@@ -49,14 +50,7 @@ module.exports = {
         options: {
           transpileOnly: true
         }
-      },
-      // {
-      //   test: /\.(js|jsx)$/,
-      //   exclude: /node_modules/,
-      //   use: {
-      //     loader: 'babel-loader'
-      //   }
-      // },
+      }
     ]
   },
   plugins: plugins
