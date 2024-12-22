@@ -7,4 +7,5 @@ interface Project {
 interface Task {
   id: number
   name: string
+  project: Project
 }
