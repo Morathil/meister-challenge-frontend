@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "npx webpack-dev-server --open",
+    "build": "RELEASE=true npx webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
